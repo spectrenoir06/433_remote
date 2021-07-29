@@ -1,4 +1,4 @@
-
+#include <odroid_go.h>
 
 uint8_t data_1[] = {
 	0xdb, 0x68, 0x69, 0xa6, 0x9a, 0x69, 0xa6, 0x9a, 0x40,
@@ -35,12 +35,14 @@ uint8_t data_5[] = {
 	0x6d, 0xb4, 0x36, 0xd3, 0x6d, 0x36, 0xd3, 0x6d, 0x26
 };
 
+#define PIN_TX 18
+
 void send_pqt(uint8_t *data, size_t size) {
 	uint8_t d;
 	for (int i=0; i<size; i++) {
 		d = data[i];
 		for (int j=0; j<8; j++) {
-			digitalWrite(26, d&(1<<7));
+			digitalWrite(PIN_TX, d&(1<<7));
 			d = d << 1;
 			delayMicroseconds(250);
 		}
@@ -52,20 +54,63 @@ void send_data(uint8_t *data) {
 	send_pqt(data, 36);
 	send_pqt(data, 36);
 	send_pqt(data, 9);
-	digitalWrite(26, 0);
+	digitalWrite(PIN_TX, 0);
 }
 
 void setup() {
-	pinMode(26, OUTPUT);
-	send_data(data_1);
-	delay(1000);
-	send_data(data_2);
-	delay(1000);
-	send_data(data_3);
-	delay(1000);
-	send_data(data_4);
+	Serial.begin(115200);
+	pinMode(PIN_TX, OUTPUT);
 }
 
+uint8_t BtnA = 0;
+uint8_t BtnB = 0;
+uint8_t BtnStart = 0;
+uint8_t BtnSelect = 0;
+uint8_t BtnMenu = 0;
+
+
 void loop() {
-	delay(200);
+	GO.update();
+
+	if (GO.BtnA.wasPressed()) {
+		if (!BtnA)
+			send_data(data_1);
+		BtnA = 1;
+	} else
+		BtnA = 0;
+
+
+	if (GO.BtnB.wasPressed()) {
+		if (!BtnB)
+			send_data(data_2);
+		BtnB = 1;
+	} else
+		BtnB = 0;
+
+
+	if (GO.BtnStart.wasPressed()) {
+		if (!BtnStart)
+			send_data(data_3);
+		BtnStart = 1;
+	} else
+		BtnStart = 0;
+
+
+	if (GO.BtnSelect.wasPressed()) {
+		if (!BtnSelect)
+			send_data(data_4);
+		BtnSelect = 1;
+	} else
+		BtnSelect = 0;
+
+
+	if (GO.BtnMenu.wasPressed()) {
+		if (!BtnMenu)
+			send_data(data_5);
+		BtnMenu = 1;
+	} else
+		BtnMenu = 0;
+
+
+	delay(20);
 }
